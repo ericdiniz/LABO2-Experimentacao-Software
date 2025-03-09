@@ -1,0 +1,6 @@
+{
+  "python.pythonPath": "~/Documents/GitHub/LABO1/myenv/bin/python",
+  "python.analysis.extraPaths": [
+    "~/Documents/GitHub/LABO1/myenv/lib/python3.13.2/site-packages"
+  ]
+}
