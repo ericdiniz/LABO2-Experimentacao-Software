@@ -11,6 +11,19 @@ query ($cursor: String) {
         stargazerCount
         forkCount
         url
+        createdAt
+        releases {
+          totalCount
+        }
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 1) {
+                totalCount
+              }
+            }
+          }
+        }
       }
     }
   }
