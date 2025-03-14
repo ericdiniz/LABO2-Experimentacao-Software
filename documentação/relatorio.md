@@ -41,5 +41,3 @@ O arquivo **`repositories.csv`** contém todas as informações coletadas e ser�
 A primeira fase do **Laboratório 02** foi concluída com sucesso, garantindo a coleta dos **1.000 repositórios Java mais populares** do GitHub. Esses dados servirão como base para a análise de métricas de qualidade na próxima etapa do estudo.
 
 ---
-
-Caso precise de modificações ou queira incluir detalhes adicionais, me avise! 😊
