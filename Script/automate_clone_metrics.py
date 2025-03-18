@@ -11,7 +11,6 @@ METRICS_FILE = "metrics.csv"
 os.makedirs(REPO_DIR, exist_ok=True)
 
 def clone_repository(repo_url, repo_name):
-    """ Clona um repositório do GitHub """
     repo_path = os.path.join(REPO_DIR, repo_name)
     
     if os.path.exists(repo_path):
@@ -27,7 +26,6 @@ def clone_repository(repo_url, repo_name):
         return None
 
 def collect_metrics(repo_path):
-    """ Coleta métricas do repositório usando cloc """
     try:
         print(f"Coletando métricas de {repo_path}...")
         result = subprocess.run(["cloc", "--json", repo_path], capture_output=True, text=True, check=True)
@@ -37,7 +35,6 @@ def collect_metrics(repo_path):
         return None
 
 def save_metrics(repo_name, metrics_data):
-    """ Salva as métricas coletadas em um arquivo CSV """
     try:
         with open(METRICS_FILE, mode="a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
@@ -46,15 +43,12 @@ def save_metrics(repo_name, metrics_data):
         print(f"Erro ao salvar métricas de {repo_name}: {e}")
 
 def main():
-    """ Executa o processo de automação: clone e coleta de métricas """
     print("Iniciando automação de clone e coleta de métricas...")
-
 
     if not os.path.exists(METRICS_FILE):
         with open(METRICS_FILE, mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow(["Repositorio", "Metricas"])
-
 
     with open(CSV_FILE, mode="r", encoding="utf-8") as file:
         reader = csv.reader(file)
@@ -69,8 +63,6 @@ def main():
                 metrics_data = collect_metrics(repo_path)
                 if metrics_data:
                     save_metrics(repo_name, metrics_data)
-            
-
             time.sleep(5)
 
     print("Processo concluído!")
