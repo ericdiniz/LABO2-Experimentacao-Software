@@ -2,70 +2,97 @@ import os
 import csv
 import subprocess
 import time
+from datetime import datetime
 
-
-REPO_DIR = "repositories_java"  
-CSV_FILE = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\resultados\repositories.csv"# Aki tem que colocar o local do arquivo CSV( onde ele ta salvo no pc de vcs)
-METRICS_FILE = "metrics.csv" 
+REPO_DIR = "repositories_java"
+CSV_INPUT = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\resultados\repositories.csv"
+METRICS_FILE = "metrics.csv"
+CK_JAR_PATH = "ck.jar"  
 
 os.makedirs(REPO_DIR, exist_ok=True)
 
 def clone_repository(repo_url, repo_name):
-    repo_path = os.path.join(REPO_DIR, repo_name)
-    
-    if os.path.exists(repo_path):
-        print(f"Repositório {repo_name} já existe. Pulando clone...")
-        return repo_path
-    
-    try:
-        print(f"Clonando {repo_name}...")
-        subprocess.run(["git", "clone", "--depth", "1", repo_url, repo_path], check=True)
-        return repo_path
-    except subprocess.CalledProcessError as e:
-        print(f"Erro ao clonar {repo_name}: {e}")
-        return None
+    path = os.path.join(REPO_DIR, repo_name)
+    if not os.path.exists(path):
+        subprocess.run(["git", "clone", repo_url, path])
+    return path
 
-def collect_metrics(repo_path):
-    try:
-        print(f"Coletando métricas de {repo_path}...")
-        result = subprocess.run(["cloc", "--json", repo_path], capture_output=True, text=True, check=True)
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        print(f"Erro ao coletar métricas de {repo_path}: {e}")
-        return None
+def get_first_commit_date(repo_path):
+    result = subprocess.run(["git", "-C", repo_path, "log", "--reverse", "--format=%at"],
+                            capture_output=True, text=True)
+    timestamps = result.stdout.strip().split("\n")
+    if timestamps:
+        first_commit = int(timestamps[0])
+        return datetime.fromtimestamp(first_commit)
+    return None
 
-def save_metrics(repo_name, metrics_data):
-    try:
-        with open(METRICS_FILE, mode="a", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow([repo_name, metrics_data])
-    except Exception as e:
-        print(f"Erro ao salvar métricas de {repo_name}: {e}")
+def get_releases_count(repo_path):
+    result = subprocess.run(["git", "-C", repo_path, "tag"], capture_output=True, text=True)
+    return len(result.stdout.strip().splitlines())
+
+def run_ck(repo_path):
+    output_dir = os.path.join(repo_path, "ck_output")
+    os.makedirs(output_dir, exist_ok=True)
+    subprocess.run(["java", "-jar", CK_JAR_PATH, repo_path, "false", "0", output_dir],
+                   capture_output=True, text=True)
+    
+    class_file = os.path.join(output_dir, "class.csv")
+    cbo_total = dit_total = lcom_total = loc_total = comment_total = class_count = 0
+
+    if os.path.exists(class_file):
+        with open(class_file, newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                class_count += 1
+                cbo_total += int(row.get("cbo", 0))
+                dit_total += int(row.get("dit", 0))
+                lcom_total += int(row.get("lcom", 0))
+                loc_total += int(row.get("loc", 0))
+                comment_total += int(row.get("comment", 0))
+
+    if class_count == 0:
+        return 0, 0, 0, 0, 0
+
+    return (
+        round(cbo_total / class_count, 2),
+        round(dit_total / class_count, 2),
+        round(lcom_total / class_count, 2),
+        loc_total,
+        comment_total
+    )
 
 def main():
-    print("Iniciando automação de clone e coleta de métricas...")
+    with open(CSV_INPUT, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        with open(METRICS_FILE, "w", newline='', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow([
+                "Repository", "Stars", "LOC", "Comments",
+                "Releases", "Age (years)", "CBO", "DIT", "LCOM"
+            ])
 
-    if not os.path.exists(METRICS_FILE):
-        with open(METRICS_FILE, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(["Repositorio", "Metricas"])
+            for row in reader:
+                repo_url = row["url"]
+                stars = row.get("stars", 0)
+                repo_name = repo_url.rstrip("/").split("/")[-1]
 
-    with open(CSV_FILE, mode="r", encoding="utf-8") as file:
-        reader = csv.reader(file)
-        next(reader)  
+                print(f"Processing {repo_name}...")
 
-        for row in reader:
-            repo_name = row[0].split("/")[1]  
-            repo_url = row[3]  
+                repo_path = clone_repository(repo_url, repo_name)
 
-            repo_path = clone_repository(repo_url, repo_name)
-            if repo_path:
-                metrics_data = collect_metrics(repo_path)
-                if metrics_data:
-                    save_metrics(repo_name, metrics_data)
-            time.sleep(5)
+                first_commit = get_first_commit_date(repo_path)
+                if first_commit:
+                    age = round((datetime.now() - first_commit).days / 365, 2)
+                else:
+                    age = "N/A"
 
-    print("Processo concluído!")
+                releases = get_releases_count(repo_path)
+                cbo, dit, lcom, loc, comments = run_ck(repo_path)
+
+                writer.writerow([
+                    repo_name, stars, loc, comments,
+                    releases, age, cbo, dit, lcom
+                ])
 
 if __name__ == "__main__":
     main()
