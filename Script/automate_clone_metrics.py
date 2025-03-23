@@ -1,19 +1,19 @@
 import os
 import csv
 import subprocess
-import time
 from datetime import datetime
 
 REPO_DIR = "repositories_java"
 CSV_INPUT = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\resultados\repositories.csv"
 METRICS_FILE = "metrics.csv"
-CK_JAR_PATH = "ck.jar"  
+CK_JAR_PATH = "ck.jar"
 
 os.makedirs(REPO_DIR, exist_ok=True)
 
 def clone_repository(repo_url, repo_name):
     path = os.path.join(REPO_DIR, repo_name)
     if not os.path.exists(path):
+        print(f"🔄 Clonando {repo_name}...")
         subprocess.run(["git", "clone", repo_url, path])
     return path
 
@@ -21,7 +21,7 @@ def get_first_commit_date(repo_path):
     result = subprocess.run(["git", "-C", repo_path, "log", "--reverse", "--format=%at"],
                             capture_output=True, text=True)
     timestamps = result.stdout.strip().split("\n")
-    if timestamps:
+    if timestamps and timestamps[0].isdigit():
         first_commit = int(timestamps[0])
         return datetime.fromtimestamp(first_commit)
     return None
@@ -33,22 +33,35 @@ def get_releases_count(repo_path):
 def run_ck(repo_path):
     output_dir = os.path.join(repo_path, "ck_output")
     os.makedirs(output_dir, exist_ok=True)
-    subprocess.run(["java", "-jar", CK_JAR_PATH, repo_path, "false", "0", output_dir],
-                   capture_output=True, text=True)
-    
+
+    print(f"⚙️ Executando CK no repositório: {repo_path}")
+
+    # Comando corrigido usando ck.CK como classe principal
+    result = subprocess.run([
+        "java", "-cp", CK_JAR_PATH, "ck.CK", repo_path, "false", "0", output_dir
+    ], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        print("❌ Erro ao executar o CK:")
+        print(result.stderr)
+        return 0, 0, 0, 0, 0
+
     class_file = os.path.join(output_dir, "class.csv")
+    if not os.path.exists(class_file):
+        print("⚠️ Arquivo class.csv não encontrado.")
+        return 0, 0, 0, 0, 0
+
     cbo_total = dit_total = lcom_total = loc_total = comment_total = class_count = 0
 
-    if os.path.exists(class_file):
-        with open(class_file, newline='') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                class_count += 1
-                cbo_total += int(row.get("cbo", 0))
-                dit_total += int(row.get("dit", 0))
-                lcom_total += int(row.get("lcom", 0))
-                loc_total += int(row.get("loc", 0))
-                comment_total += int(row.get("comment", 0))
+    with open(class_file, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            class_count += 1
+            cbo_total += int(row.get("cbo", 0))
+            dit_total += int(row.get("dit", 0))
+            lcom_total += int(row.get("lcom", 0))
+            loc_total += int(row.get("loc", 0))
+            comment_total += int(row.get("comment", 0))
 
     if class_count == 0:
         return 0, 0, 0, 0, 0
@@ -73,10 +86,10 @@ def main():
 
             for row in reader:
                 repo_url = row["url"]
-                stars = row.get("stars", 0)
+                stars = int(row.get("stargazerCount", 0))
                 repo_name = repo_url.rstrip("/").split("/")[-1]
 
-                print(f"Processing {repo_name}...")
+                print(f"\n📦 Processando repositório: {repo_name}")
 
                 repo_path = clone_repository(repo_url, repo_name)
 
@@ -88,6 +101,9 @@ def main():
 
                 releases = get_releases_count(repo_path)
                 cbo, dit, lcom, loc, comments = run_ck(repo_path)
+
+                print(f"✅ Métricas extraídas: LOC={loc}, Comentários={comments}, CBO={cbo}, DIT={dit}, LCOM={lcom}")
+                print("💾 Salvando no CSV...")
 
                 writer.writerow([
                     repo_name, stars, loc, comments,
