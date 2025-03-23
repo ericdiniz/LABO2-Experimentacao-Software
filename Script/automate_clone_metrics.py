@@ -6,7 +6,7 @@ from datetime import datetime
 REPO_DIR = "repositories_java"
 CSV_INPUT = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\resultados\repositories.csv"
 METRICS_FILE = "metrics.csv"
-CK_JAR_PATH = "ck.jar"
+CK_JAR_PATH = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\Script\ck.jar"
 
 os.makedirs(REPO_DIR, exist_ok=True)
 
