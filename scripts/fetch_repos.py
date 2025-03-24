@@ -1,6 +1,5 @@
 import requests
 import os
-import json
 from queries.repositories import QUERY_REPOSITORIES
 from dotenv import load_dotenv
 

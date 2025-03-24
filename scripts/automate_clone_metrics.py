@@ -3,10 +3,10 @@ import csv
 import subprocess
 from datetime import datetime
 
-REPO_DIR = "repositories_java"
+REPO_DIR = "../Script/repositories_java"
 CSV_INPUT = r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\resultados\repositories.csv"
 METRICS_FILE = "metrics.csv"
-CK_JAR_PATH = r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\ck.jar"
+CK_JAR_PATH = r"/ck.jar"
 
 os.makedirs(REPO_DIR, exist_ok=True)
 
@@ -44,13 +44,11 @@ def run_ck(repo_path):
     )
 
     if result.returncode != 0:
-        print("❌ Erro ao executar o CK:")
         print(result.stderr)
         return 0, 0, 0, 0, 0
 
     class_file = os.path.join(output_dir, r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\Script\class.csv")
     if not os.path.exists(class_file):
-        print("⚠️ Arquivo class.csv não encontrado.")
         return 0, 0, 0, 0, 0
 
     cbo_total = dit_total = lcom_total = loc_total = comment_total = class_count = 0
@@ -103,9 +101,6 @@ def main():
 
                 releases = get_releases_count(repo_path)
                 cbo, dit, lcom, loc, comments = run_ck(repo_path)
-
-                print(f"✅ Métricas extraídas: LOC={loc}, Comentários={comments}, CBO={cbo}, DIT={dit}, LCOM={lcom}")
-                print("💾 Salvando no CSV...")
 
                 writer.writerow([
                     repo_name, stars, loc, comments,
