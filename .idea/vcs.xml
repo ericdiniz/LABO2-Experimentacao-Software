@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/JavaGuide" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/LeetCodeAnimation" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/advanced-java" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/elasticsearch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/hello-algo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/java-design-patterns" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/mall" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Script/repositories_java/spring-boot" vcs="Git" />
+  </component>
+</project>

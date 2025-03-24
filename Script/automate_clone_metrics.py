@@ -4,9 +4,9 @@ import subprocess
 from datetime import datetime
 
 REPO_DIR = "repositories_java"
-CSV_INPUT = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\resultados\repositories.csv"
+CSV_INPUT = r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\resultados\repositories.csv"
 METRICS_FILE = "metrics.csv"
-CK_JAR_PATH = r"C:\Users\ian18\OneDrive\Documentos\GitHub\LABO2-Experimentacao-Software\Script\ck.jar"
+CK_JAR_PATH = r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\ck.jar"
 
 os.makedirs(REPO_DIR, exist_ok=True)
 
@@ -36,17 +36,19 @@ def run_ck(repo_path):
 
     print(f"⚙️ Executando CK no repositório: {repo_path}")
 
-    # Comando corrigido usando ck.CK como classe principal
-    result = subprocess.run([
-        "java", "-cp", CK_JAR_PATH, "ck.CK", repo_path, "false", "0", output_dir
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        ['java', '-jar', CK_JAR_PATH, repo_path],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode != 0:
         print("❌ Erro ao executar o CK:")
         print(result.stderr)
         return 0, 0, 0, 0, 0
 
-    class_file = os.path.join(output_dir, "class.csv")
+    class_file = os.path.join(output_dir, r"C:\Users\Pablo Benevenuto\Downloads\LABO2-Experimentacao-Software\Script\class.csv")
     if not os.path.exists(class_file):
         print("⚠️ Arquivo class.csv não encontrado.")
         return 0, 0, 0, 0, 0
